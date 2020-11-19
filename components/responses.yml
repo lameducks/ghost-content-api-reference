@@ -1,0 +1,27 @@
+BadRequest:
+  description: Badly formed queries e.g. filter parameters that are not correctly encoded
+  content:
+    application/json:
+      schema:
+        $ref: "schemas.yml#/ErrorResponse"
+
+Unauthorized:
+  description: Authentication failures e.g. unrecognised keys
+  content:
+    application/json:
+      schema:
+        $ref: "schemas.yml#/ErrorResponse"
+
+NotFound:
+  description: Unknown resources e.g. data which is not public
+  content:
+    application/json:
+      schema:
+        $ref: "schemas.yml#/ErrorResponse"
+
+InternalServerError:
+  description: Server errors e.g. where something has gone
+  content:
+    application/json:
+      schema:
+        $ref: "schemas.yml#/ErrorResponse"

@@ -1,0 +1,938 @@
+openapi: 3.0.0
+info:
+  title: Ghost Content API Reference
+  version: 3.38.2
+
+  description: |-
+    Ghost's RESTful Content API delivers published content to the world and can be accessed in a read-only manner by any
+    client to render in a website, app or other embedded media.
+    
+    Access control is managed via an API key, and even the most complex filters are made simple with our SDK. The
+    Content API is designed to be fully cachable, meaning you can fetch data as often as you like without limitation.
+    
+    # Versioning
+    
+    See [API versioning](https://ghost.org/faq/api-versioning/) for full details of the API versions and their
+    stability levels.
+    
+    # Api Clients
+    
+    ### JavaScript Client Library
+    
+    We've developed an [API client for JavaScript](https://ghost.org/docs/api/v3/javascript/), that will allow you
+    to quickly and easily interact with the Content API. The client is an advanced wrapper on top of our REST API -
+    everything that can be done with the Content API can be done using the client, with no need to deal with the
+    details of authentication or the request & response format.
+    
+    ### Handlebars
+    
+    You can upgrade your Ghost theme to use the v3 Content API by specifying the `ghost-api` version in the `engines`
+    field of your package.json. See the
+    [handlebars reference](https://ghost.org/docs/api/v3/handlebars-themes/packagejson/) for an example.
+    
+    # Authentication
+    
+    <SecurityDefinitions />
+    
+    ### Url
+    
+    `https://{admin_domain}`
+    
+    Your admin domain can be different to your main domain. Using the correct domain and protocol are critical to
+    getting consistent behaviour, particularly when dealing with CORS in the browser. All Ghost(Pro) blogs have a
+    `*.ghost.io` domain as their admin domain and require https.
+    
+    ### Path & Version
+    
+    `/ghost/api/{version}/content/`
+    
+    Each API is prefixed with the same path, followed by a specific version. Version strings are required and always
+    start with `v`. The [api versioning](https://ghost.org/faq/api-versioning/) guide explains the current available
+    versions and stability index.
+    
+    ### Key
+    
+    `?key={key}`
+    
+    Content API keys are provided via a query parameter in the url. These keys are safe for use in browsers and
+    other insecure environments, as they only ever provide access to public data. Sites in private mode should
+    consider where they share any keys they create.
+    
+    The Content API URL and key can be obtained by creating a new Custom Integration under the Integrations screen
+    in Ghost Admin.
+    
+    ![](https://ghost.org/images/docs/apikey.png)
+    
+    ### Working Example
+    
+    ````bash
+    # Real endpoint - copy and paste to see!
+    curl "https://demo.ghost.io/ghost/api/v3/content/posts/?key=22444f78447824223cefc48062"
+    ````
+    
+    # Endpoints
+    
+    The Content API provides access to Posts, Pages, Tags, Authors and Settings. All endpoints return JSON.
+    
+    The Content API supports two types of request: Browse and Read. Browse endpoints allow you to fetch lists of
+    resources, whereas Read endpoints allow you to fetch a single resource.
+    
+    # Resources
+    The API will always return valid JSON in the same structure:
+    
+    ```json
+    {
+        "resource_type": [{
+            ...
+        }],
+        "meta": {}
+    }
+    ```
+    
+    * `resource_type`: will always match the resource name in the URL. All resources are returned wrapped in an array,
+      with the exception of `/site/` and `/settings/`.
+    * `meta`: contains pagination information for browse requests.
+
+  license:
+    name: MIT License
+    url: https://github.com/TryGhost/Ghost/blob/master/LICENSE
+
+externalDocs:
+  description: Official Content API Reference
+  url: https://ghost.org/docs/api/v3/content/
+
+servers:
+  - url: http://your-ghost-url.com/ghost/api/v3/content
+  - url: https://your-ghost-url.com/ghost/api/v3/content
+
+tags:
+  - name: Posts
+    description: |-
+      Posts are the [primary resource](https://ghost.org/docs/concepts/posts/) in a Ghost site. Using the posts endpoint
+      it is possible to get lists of posts filtered by various criteria.
+      
+      ```js
+      GET /content/posts/
+      GET /content/posts/{id}/
+      GET /content/posts/slug/{slug}/
+      ```
+      
+      By default, posts are returned in reverse chronological order by published date when fetching more than one.
+      
+      The most common gotcha when fetching posts from the Content API is not using the include parameter to request
+      related data such as tags and authors. By default, the response for a post will not include these:
+      
+      ```json
+      {
+        "posts": [
+          {
+            "slug": "welcome-short",
+            "id": "5ddc9141c35e7700383b2937",
+            "uuid": "a5aa9bd8-ea31-415c-b452-3040dae1e730",
+            "title": "Welcome",
+            "html": "<p>👋 Welcome, it's great to have you here.</p>",
+            "comment_id": "5ddc9141c35e7700383b2937",
+            "feature_image": "https://static.ghost.org/v3.0.0/images/welcome-to-ghost.png",
+            "featured": false,
+            "visibility": "public",
+            "created_at": "2019-11-26T02:43:13.000+00:00",
+            "updated_at": "2019-11-26T02:44:17.000+00:00",
+            "published_at": "2019-11-26T02:44:17.000+00:00",
+            "custom_excerpt": null,
+            "codeinjection_head": null,
+            "codeinjection_foot": null,
+            "custom_template": null,
+            "canonical_url": null,
+            "send_email_when_published": false,
+            "url": "https://docs.ghost.io/welcome-short/",
+            "excerpt": "👋 Welcome, it's great to have you here.",
+            "reading_time": 0,
+            "access": true,
+            "og_image": null,
+            "og_title": null,
+            "og_description": null,
+            "twitter_image": null,
+            "twitter_title": null,
+            "twitter_description": null,
+            "meta_title": null,
+            "meta_description": null,
+            "email_subject": null
+          }
+        ]
+      }
+      ```
+      
+      Posts allow you to include `authors` and `tags` using `?include=authors,tags`, which will add an `authors` and
+      `tags` array to the response, as well as both a `primary_author` and `primary_tag` object.
+      
+      ### Working Example
+      
+      ```bash
+      # Real endpoint - copy and paste to see!
+      curl "https://demo.ghost.io/ghost/api/v3/content/posts/?key=22444f78447824223cefc48062&include=tags,authors"
+      ```
+      
+      #### Returns:
+      
+      ```json
+      {
+        "posts": [
+          {
+            "slug": "welcome-short",
+            "id": "5ddc9141c35e7700383b2937",
+            "uuid": "a5aa9bd8-ea31-415c-b452-3040dae1e730",
+            "title": "Welcome",
+            "html": "<p>👋 Welcome, it's great to have you here.</p>",
+            "comment_id": "5ddc9141c35e7700383b2937",
+            "feature_image": "https://static.ghost.org/v3.0.0/images/welcome-to-ghost.png",
+            "featured": false,
+            "visibility": "public",
+            "created_at": "2019-11-26T02:43:13.000+00:00",
+            "updated_at": "2019-11-26T02:44:17.000+00:00",
+            "published_at": "2019-11-26T02:44:17.000+00:00",
+            "custom_excerpt": null,
+            "codeinjection_head": null,
+            "codeinjection_foot": null,
+            "custom_template": null,
+            "canonical_url": null,
+            "send_email_when_published": false,
+            "tags": [
+              {
+                "id": "5ddc9063c35e7700383b27e0",
+                "name": "Getting Started",
+                "slug": "getting-started",
+                "description": null,
+                "feature_image": null,
+                "visibility": "public",
+                "meta_title": null,
+                "meta_description": null,
+                "og_image": null,
+                "og_title": null,
+                "og_description": null,
+                "twitter_image": null,
+                "twitter_title": null,
+                "twitter_description": null,
+                "codeinjection_head": null,
+                "codeinjection_foot": null,
+                "canonical_url": null,
+                "accent_color": null,
+                "url": "https://docs.ghost.io/tag/getting-started/"
+              }
+            ],
+            "authors": [
+              {
+                "id": "5951f5fca366002ebd5dbef7",
+                "name": "Ghost",
+                "slug": "ghost-user",
+                "profile_image": "//www.gravatar.com/avatar/2fab21a4c4ed88e76add10650c73bae1?s=250&d=mm&r=x",
+                "cover_image": null,
+                "bio": null,
+                "website": "https://ghost.org",
+                "location": "The Internet",
+                "facebook": "ghost",
+                "twitter": "@ghost",
+                "meta_title": null,
+                "meta_description": null,
+                "url": "https://docs.ghost.io/author/ghost-user/"
+              }
+            ],
+            "primary_author": {
+              "id": "5951f5fca366002ebd5dbef7",
+              "name": "Ghost",
+              "slug": "ghost-user",
+              "profile_image": "//www.gravatar.com/avatar/2fab21a4c4ed88e76add10650c73bae1?s=250&d=mm&r=x",
+              "cover_image": null,
+              "bio": null,
+              "website": "https://ghost.org",
+              "location": "The Internet",
+              "facebook": "ghost",
+              "twitter": "@ghost",
+              "meta_title": null,
+              "meta_description": null,
+              "url": "https://docs.ghost.io/author/ghost-user/"
+            },
+            "primary_tag": {
+              "id": "5ddc9063c35e7700383b27e0",
+              "name": "Getting Started",
+              "slug": "getting-started",
+              "description": null,
+              "feature_image": null,
+              "visibility": "public",
+              "meta_title": null,
+              "meta_description": null,
+              "og_image": null,
+              "og_title": null,
+              "og_description": null,
+              "twitter_image": null,
+              "twitter_title": null,
+              "twitter_description": null,
+              "codeinjection_head": null,
+              "codeinjection_foot": null,
+              "canonical_url": null,
+              "accent_color": null,
+              "url": "https://docs.ghost.io/tag/getting-started/"
+            },
+            "url": "https://docs.ghost.io/welcome-short/",
+            "excerpt": "👋 Welcome, it's great to have you here.",
+            "reading_time": 0,
+            "access": true,
+            "og_image": null,
+            "og_title": null,
+            "og_description": null,
+            "twitter_image": null,
+            "twitter_title": null,
+            "twitter_description": null,
+            "meta_title": null,
+            "meta_description": null,
+            "email_subject": null
+          }
+        ]
+      }
+      ```
+
+  - name: Pages
+    description: |-
+      Pages are static resources that are not included in channels or collections on the Ghost front-end. The API will
+      only return pages that were created as [resources](https://ghost.org/docs/concepts/pages/) and will not contain
+      routes created with [dynamic routing](https://ghost.org/docs/api/v3/handlebars-themes/routing/).
+      
+      ```js
+      GET /content/pages/
+      GET /content/pages/{id}/
+      GET /content/pages/slug/{slug}/
+      ```
+      
+      Pages are structured identically to posts. The response object will look the same, only the resource key will be
+      `pages`. By default, pages are ordered by title when fetching more than one.
+
+  - name: Tags
+    description: |-
+      Tags are the [primary taxonomy](https://ghost.org/docs/concepts/tags/) within a Ghost site.
+      
+      ```js
+      GET /content/tags/
+      GET /content/tags/{id}/
+      GET /content/tags/slug/{slug}/
+      ```
+      
+      By default, internal tags are always included, use `filter=visibility:public` to limit the response directly or
+      use the [tags helper](https://ghost.org/docs/api/v3/handlebars-themes/helpers/tags/) to handle filtering and
+      outputting the response.
+      
+      Tags that are not associated with a post are not returned. You can supply `include=count.posts` to retrieve the
+      number of posts associated with a tag.
+      
+      ```json
+      {
+        "tags": [
+          {
+            "slug": "getting-started",
+            "id": "5ddc9063c35e7700383b27e0",
+            "name": "Getting Started",
+            "description": null,
+            "feature_image": null,
+            "visibility": "public",
+            "meta_title": null,
+            "meta_description": null,
+            "og_image": null,
+            "og_title": null,
+            "og_description": null,
+            "twitter_image": null,
+            "twitter_title": null,
+            "twitter_description": null,
+            "codeinjection_head": null,
+            "codeinjection_foot": null,
+            "canonical_url": null,
+            "accent_color": null,
+            "url": "https://docs.ghost.io/tag/getting-started/"
+          }
+        ]
+      }
+      ```
+      
+      By default, tags are ordered by name when fetching more than one.
+
+  - name: Authors
+    description: |-
+      Authors are a subset of [users](https://ghost.org/docs/concepts/users/) who have published posts asscoiated with
+      them.
+      
+      ```js
+      GET /content/authors/
+      GET /content/authors/{id}/
+      GET /content/authors/slug/{slug}/
+      ```
+      
+      Authors that are not associated with a post are not returned. You can supply `include=count.posts` to retrieve the
+      number of posts associated with an author.
+      
+      ```json
+      {
+        "authors": [
+          {
+            "slug": "cameron",
+            "id": "5ddc9b9510d8970038255d02",
+            "name": "Cameron Almeida",
+            "profile_image": "https://docs.ghost.io/content/images/2019/03/1c2f492a-a5d0-4d2d-b350-cdcdebc7e413.jpg",
+            "cover_image": null,
+            "bio": "Editor at large.",
+            "website": "https://example.com",
+            "location": "Cape Town",
+            "facebook": "example",
+            "twitter": "@example",
+            "meta_title": null,
+            "meta_description": null,
+            "url": "https://docs.ghost.io/author/cameron/"
+          }
+        ]
+      }
+      ```
+
+  - name: Settings
+    description: |-
+      Settings contains the global settings for a site.
+      
+      ```js
+      GET /content/settings/
+      ```
+      
+      The settings endpoint is a special case. You will receive a single object, rather than an array. This endpoint
+      doesn't accept any query parameters.
+      
+      ```json
+      {
+        "settings": {
+          "title": "Ghost",
+          "description": "The professional publishing platform",
+          "logo": "https://docs.ghost.io/content/images/2014/09/Ghost-Transparent-for-DARK-BG.png",
+          "icon": "https://docs.ghost.io/content/images/2017/07/favicon.png",
+          "accent_color": null,
+          "cover_image": "https://docs.ghost.io/content/images/2019/10/publication-cover.png",
+          "facebook": "ghost",
+          "twitter": "@tryghost",
+          "lang": "en",
+          "timezone": "Etc/UTC",
+          "codeinjection_head": null,
+          "codeinjection_foot": "<script src=\"//rum-static.pingdom.net/pa-5d8850cd3a70310008000482.js\" async></script>",
+          "navigation": [
+            {
+              "label": "Home",
+              "url": "/"
+            },
+            {
+              "label": "About",
+              "url": "/about/"
+            },
+            {
+              "label": "Getting Started",
+              "url": "/tag/getting-started/"
+            },
+            {
+              "label": "Try Ghost",
+              "url": "https://ghost.org"
+            }
+          ],
+          "secondary_navigation": [],
+          "meta_title": null,
+          "meta_description": null,
+          "og_image": null,
+          "og_title": null,
+          "og_description": null,
+          "twitter_image": null,
+          "twitter_title": null,
+          "twitter_description": null,
+          "members_support_address": "noreply@docs.ghost.io",
+          "url": "https://docs.ghost.io/"
+        }
+      }
+      ```
+
+  - name: Filtering
+    description: |-
+      Ghost uses a query language called NQL to allow filtering API results. You can filter any field or included field
+      using matches, greater/less than or negation, as well as combining with and/or. NQL doesn't yet support 'like' or
+      partial matches.
+      
+      Filter strings must be URL encoded. The [{{get}}](https://ghost.org/docs/api/v3/javascript/) helper and
+      [client libraries](https://ghost.org/docs/api/v3/javascript/) handle this for you.
+      
+      At it's most simple, filtering works the same as in GMail, GitHub or Slack - you provide a field and a value,
+      separated by a colon.
+      
+      ### Syntax Reference
+      
+      #### Filter Expressions
+      
+      A **filter expression** is a string which provides the **property**, **operator** and **value** in the form
+      **property:operatorvalue**:
+      
+      * **property** - a path representing the field to filter on
+      * **:** - separator between **property** and an **operator-value** expression
+      * **operator** (optional) - how to compare values (`:` on its own is roughly `=`)
+      * **value** - the value to match against
+      
+      #### Property
+      
+      Matches: `[a-zA-Z_][a-zA-Z0-9_.]`
+      
+      * can contain only alpha-numeric characters and `_`
+      * cannot contain whitespace
+      * must start with a letter
+      * supports `.` separated paths, E.g. `authors.slug` or `posts.count`
+      * is always lowercase, but accepts and converts uppercase
+      
+      #### Value
+      
+      Can be one of the following
+      
+      * **null**
+      * **true**
+      * **false**
+      * a **number** (integer)
+      * a **literal**
+          * Any character string which follows these rules:
+          * Cannot start with `-` but may contain it
+          * Cannot contain any of these symbols: `'"+,()><=[]` unless they are escaped
+          * Cannot contain whitespace
+      * a **string**
+          * `'` string here `'` Any character except a single or double quote surrounded by single quotes
+          * Single or Double quote _MUST _be escaped*
+          * Can contain whitespace
+          * A string can contain a date any format that can be understood by `new Date()`
+      
+      #### Operators
+      
+      * `-` - not
+      * `>` - greater than
+      * `>=` - greater than or equals
+      * `<` - less than
+      * `<=` - less than or equals
+      * `[` value, value, ... `]` - "in" group, can be negated with `-`
+
+      #### Combinations
+      
+      * `+` - represents and
+      * `,` - represents or
+      * `(` filter expression `)` - overrides operator precedence
+      
+      #### Strings vs Literals
+      
+      Most of the time, there's no need to put quotes around strings when building filters in Ghost. If you filter based
+      on slugs, slugs are always compatible with literals. However, in some cases you may need to use a string that
+      contains one of the other characters used in the filter syntax, e.g. dates & times contain`:`. Use single-quotes
+      for these.
+
+x-tagGroups:
+  - name: Endpoints
+    tags:
+      - Posts
+      - Pages
+      - Authors
+      - Tags
+      - Settings
+  - name: Advanced Features
+    tags:
+      - Filtering
+
+security:
+  - Content-API-Key: []
+
+components:
+  securitySchemes:
+    Content-API-Key:
+      type: apiKey
+      in: query
+      name: key
+
+paths:
+  /posts/:
+    get:
+      tags:
+        - Posts
+      summary: Browse posts
+      operationId: getPosts
+      parameters:
+        - $ref: "components/parameters.yml#/include"
+        - $ref: "components/parameters.yml#/fields"
+        - $ref: "components/parameters.yml#/formats"
+        - $ref: "components/parameters.yml#/filter"
+        - $ref: "components/parameters.yml#/limit"
+        - $ref: "components/parameters.yml#/page"
+        - $ref: "components/parameters.yml#/order"
+      responses:
+        "200":
+          description: OK (with Meta)
+          content:
+            application/json:
+              schema:
+                $ref: "components/schemas.yml#/PostsResponse"
+        "400":
+          $ref: "components/responses.yml#/BadRequest"
+        "401":
+          $ref: "components/responses.yml#/Unauthorized"
+        "404":
+          $ref: "components/responses.yml#/NotFound"
+        "500":
+          $ref: "components/responses.yml#/InternalServerError"
+
+  /posts/{id}:
+    get:
+      tags:
+        - Posts
+      summary: Read a post by ID
+      operationId: getPostsById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The post ID
+        - $ref: "components/parameters.yml#/include"
+        - $ref: "components/parameters.yml#/fields"
+        - $ref: "components/parameters.yml#/formats"
+      responses:
+        "200":
+          description: OK (without Meta)
+          content:
+            application/json:
+              schema:
+                $ref: "components/schemas.yml#/PostsResponse"
+        "400":
+          $ref: "components/responses.yml#/BadRequest"
+        "401":
+          $ref: "components/responses.yml#/Unauthorized"
+        "404":
+          $ref: "components/responses.yml#/NotFound"
+        "500":
+          $ref: "components/responses.yml#/InternalServerError"
+
+  /posts/slug/{slug}/:
+    get:
+      tags:
+        - Posts
+      summary: Read a post by slug
+      operationId: getPostsBySlug
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+          description: The post slug
+        - $ref: "components/parameters.yml#/include"
+        - $ref: "components/parameters.yml#/fields"
+        - $ref: "components/parameters.yml#/formats"
+      responses:
+        "200":
+          description: OK (without Meta)
+          content:
+            application/json:
+              schema:
+                $ref: "components/schemas.yml#/PostsResponse"
+        "400":
+          $ref: "components/responses.yml#/BadRequest"
+        "401":
+          $ref: "components/responses.yml#/Unauthorized"
+        "404":
+          $ref: "components/responses.yml#/NotFound"
+        "500":
+          $ref: "components/responses.yml#/InternalServerError"
+
+  /pages/:
+    get:
+      tags:
+        - Pages
+      summary: Browse pages
+      operationId: getPages
+      parameters:
+        - $ref: "components/parameters.yml#/include"
+        - $ref: "components/parameters.yml#/fields"
+        - $ref: "components/parameters.yml#/formats"
+        - $ref: "components/parameters.yml#/filter"
+        - $ref: "components/parameters.yml#/limit"
+        - $ref: "components/parameters.yml#/page"
+        - $ref: "components/parameters.yml#/order"
+      responses:
+        "200":
+          description: OK (with Meta)
+          content:
+            application/json:
+              schema:
+                $ref: "components/schemas.yml#/PostsResponse"
+        "400":
+          $ref: "components/responses.yml#/BadRequest"
+        "401":
+          $ref: "components/responses.yml#/Unauthorized"
+        "404":
+          $ref: "components/responses.yml#/NotFound"
+        "500":
+          $ref: "components/responses.yml#/InternalServerError"
+
+  /pages/{id}:
+    get:
+      tags:
+        - Pages
+      summary: Read a page by ID
+      operationId: getPagesById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The post ID
+        - $ref: "components/parameters.yml#/include"
+        - $ref: "components/parameters.yml#/fields"
+        - $ref: "components/parameters.yml#/formats"
+      responses:
+        "200":
+          description: OK (without Meta)
+          content:
+            application/json:
+              schema:
+                $ref: "components/schemas.yml#/PostsResponse"
+        "400":
+          $ref: "components/responses.yml#/BadRequest"
+        "401":
+          $ref: "components/responses.yml#/Unauthorized"
+        "404":
+          $ref: "components/responses.yml#/NotFound"
+        "500":
+          $ref: "components/responses.yml#/InternalServerError"
+
+  /pages/slug/{slug}/:
+    get:
+      tags:
+        - Pages
+      summary: Read a page by slug
+      operationId: getPagesBySlug
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+          description: The post slug
+        - $ref: "components/parameters.yml#/include"
+        - $ref: "components/parameters.yml#/fields"
+        - $ref: "components/parameters.yml#/formats"
+      responses:
+        "200":
+          description: OK (without Meta)
+          content:
+            application/json:
+              schema:
+                $ref: "components/schemas.yml#/PostsResponse"
+        "400":
+          $ref: "components/responses.yml#/BadRequest"
+        "401":
+          $ref: "components/responses.yml#/Unauthorized"
+        "404":
+          $ref: "components/responses.yml#/NotFound"
+        "500":
+          $ref: "components/responses.yml#/InternalServerError"
+
+  /authors/:
+    get:
+      tags:
+        - Authors
+      summary: Browse authors
+      operationId: getAuthors
+      parameters:
+        - $ref: "components/parameters.yml#/include"
+        - $ref: "components/parameters.yml#/fields"
+        - $ref: "components/parameters.yml#/filter"
+        - $ref: "components/parameters.yml#/limit"
+        - $ref: "components/parameters.yml#/page"
+        - $ref: "components/parameters.yml#/order"
+      responses:
+        "200":
+          description: OK (with Meta)
+          content:
+            application/json:
+              schema:
+                $ref: "components/schemas.yml#/AuthorsResponse"
+        "400":
+          $ref: "components/responses.yml#/BadRequest"
+        "401":
+          $ref: "components/responses.yml#/Unauthorized"
+        "404":
+          $ref: "components/responses.yml#/NotFound"
+        "500":
+          $ref: "components/responses.yml#/InternalServerError"
+
+  /authors/{id}:
+    get:
+      tags:
+        - Authors
+      summary: Read an author by ID
+      operationId: getAuthorsById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The author ID
+        - $ref: "components/parameters.yml#/include"
+        - $ref: "components/parameters.yml#/fields"
+      responses:
+        "200":
+          description: OK (without Meta)
+          content:
+            application/json:
+              schema:
+                $ref: "components/schemas.yml#/AuthorsResponse"
+        "400":
+          $ref: "components/responses.yml#/BadRequest"
+        "401":
+          $ref: "components/responses.yml#/Unauthorized"
+        "404":
+          $ref: "components/responses.yml#/NotFound"
+        "500":
+          $ref: "components/responses.yml#/InternalServerError"
+
+  /authors/slug/{slug}/:
+    get:
+      tags:
+        - Authors
+      summary: Read an author by slug
+      operationId: getAuthorsBySlug
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+          description: The author slug
+        - $ref: "components/parameters.yml#/include"
+        - $ref: "components/parameters.yml#/fields"
+      responses:
+        "200":
+          description: OK (without Meta)
+          content:
+            application/json:
+              schema:
+                $ref: "components/schemas.yml#/AuthorsResponse"
+        "400":
+          $ref: "components/responses.yml#/BadRequest"
+        "401":
+          $ref: "components/responses.yml#/Unauthorized"
+        "404":
+          $ref: "components/responses.yml#/NotFound"
+        "500":
+          $ref: "components/responses.yml#/InternalServerError"
+
+  /tags/:
+    get:
+      tags:
+        - Tags
+      summary: Browse tags
+      operationId: getTags
+      parameters:
+        - $ref: "components/parameters.yml#/include"
+        - $ref: "components/parameters.yml#/fields"
+        - $ref: "components/parameters.yml#/filter"
+        - $ref: "components/parameters.yml#/limit"
+        - $ref: "components/parameters.yml#/page"
+        - $ref: "components/parameters.yml#/order"
+      responses:
+        "200":
+          description: OK (with Meta)
+          content:
+            application/json:
+              schema:
+                $ref: "components/schemas.yml#/TagsResponse"
+        "400":
+          $ref: "components/responses.yml#/BadRequest"
+        "401":
+          $ref: "components/responses.yml#/Unauthorized"
+        "404":
+          $ref: "components/responses.yml#/NotFound"
+        "500":
+          $ref: "components/responses.yml#/InternalServerError"
+
+  /tags/{id}:
+    get:
+      tags:
+        - Tags
+      summary: Read a tag by ID
+      operationId: getTagsById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The tag ID
+        - $ref: "components/parameters.yml#/include"
+        - $ref: "components/parameters.yml#/fields"
+      responses:
+        "200":
+          description: OK (without Meta)
+          content:
+            application/json:
+              schema:
+                $ref: "components/schemas.yml#/TagsResponse"
+        "400":
+          $ref: "components/responses.yml#/BadRequest"
+        "401":
+          $ref: "components/responses.yml#/Unauthorized"
+        "404":
+          $ref: "components/responses.yml#/NotFound"
+        "500":
+          $ref: "components/responses.yml#/InternalServerError"
+
+  /tags/slug/{slug}/:
+    get:
+      tags:
+        - Tags
+      summary: Read a tag by slug
+      operationId: getTagsBySlug
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+          description: The tag slug
+        - $ref: "components/parameters.yml#/include"
+        - $ref: "components/parameters.yml#/fields"
+      responses:
+        "200":
+          description: OK (without Meta)
+          content:
+            application/json:
+              schema:
+                $ref: "components/schemas.yml#/TagsResponse"
+        "400":
+          $ref: "components/responses.yml#/BadRequest"
+        "401":
+          $ref: "components/responses.yml#/Unauthorized"
+        "404":
+          $ref: "components/responses.yml#/NotFound"
+        "500":
+          $ref: "components/responses.yml#/InternalServerError"
+
+  /settings/:
+    get:
+      tags:
+        - Settings
+      summary: Browse settings
+      operationId: getSettings
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "components/schemas.yml#/SettingsResponse"
+        "400":
+          $ref: "components/responses.yml#/BadRequest"
+        "401":
+          $ref: "components/responses.yml#/Unauthorized"
+        "404":
+          $ref: "components/responses.yml#/NotFound"
+        "500":
+          $ref: "components/responses.yml#/InternalServerError"

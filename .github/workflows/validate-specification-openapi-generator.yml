@@ -1,0 +1,23 @@
+name: Validate specification with OpenAPI Generator
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Validate specification
+      run: |
+        docker run \
+        -v ${{ github.workspace }}:/local \
+        openapitools/openapi-generator-cli:latest-release \
+        validate -i /local/openapi.yml

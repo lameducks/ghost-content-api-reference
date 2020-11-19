@@ -1,0 +1,320 @@
+Post:
+  type: object
+  properties:
+    id:
+      type: string
+    uuid:
+      type: string
+    title:
+      type: string
+    slug:
+      type: string
+    html:
+      type: string
+    comment_id:
+      type: string
+    feature_image:
+      type: string
+    featured:
+      type: boolean
+    visibility:
+      type: string
+    created_at:
+      type: string
+      format: date-time
+    updated_at:
+      type: string
+      format: date-time
+    published_at:
+      type: string
+      format: date-time
+    custom_excerpt:
+      type: string
+    codeinjection_head:
+      type: string
+    codeinjection_foot:
+      type: string
+    custom_template:
+      type: string
+    canonical_url:
+      type: string
+    tags:
+      type: array
+      items:
+        $ref: "#/Tag"
+    authors:
+      type: array
+      items:
+        $ref: "#/Author"
+    primary_author:
+      $ref: "#/Author"
+    primary_tag:
+      $ref: "#/Tag"
+    url:
+      type: string
+    excerpt:
+      type: string
+    reading_time:
+      type: integer
+    access:
+      type: boolean
+    send_email_when_published:
+      type: boolean
+    og_image:
+      type: string
+    og_title:
+      type: string
+    og_description:
+      type: string
+    twitter_image:
+      type: string
+    twitter_title:
+      type: string
+    twitter_description:
+      type: string
+    meta_title:
+      type: string
+    meta_description:
+      type: string
+    email_subject:
+      type: string
+
+Author:
+  type: object
+  properties:
+    id:
+      type: string
+    name:
+      type: string
+    slug:
+      type: string
+    profile_image:
+      type: string
+    cover_image:
+      type: string
+    bio:
+      type: string
+    website:
+      type: string
+    location:
+      type: string
+    facebook:
+      type: string
+    twitter:
+      type: string
+    meta_title:
+      type: string
+    meta_description:
+      type: string
+    url:
+      type: string
+
+Tag:
+  type: object
+  properties:
+    id:
+      type: string
+    name:
+      type: string
+    slug:
+      type: string
+    description:
+      type: string
+    feature_image:
+      type: string
+    visibility:
+      type: string
+    og_image:
+      type: string
+    og_title:
+      type: string
+    og_description:
+      type: string
+    twitter_image:
+      type: string
+    twitter_title:
+      type: string
+    twitter_description:
+      type: string
+    meta_title:
+      type: string
+    meta_description:
+      type: string
+    codeinjection_head:
+      type: string
+    codeinjection_foot:
+      type: string
+    canonical_url:
+      type: string
+    accent_color:
+      type: string
+    url:
+      type: string
+
+Settings:
+  type: object
+  properties:
+    title:
+      type: string
+    description:
+      type: string
+    logo:
+      type: string
+    icon:
+      type: string
+    accent_color:
+      type: string
+    cover_image:
+      type: string
+    facebook:
+      type: string
+    twitter:
+      type: string
+    lang:
+      type: string
+    timezone:
+      type: string
+    codeinjection_head:
+      type: string
+    codeinjection_foot:
+      type: string
+    navigation:
+      type: array
+      items:
+        type: object
+        properties:
+          label:
+            type: string
+          url:
+            type: string
+    secondary_navigation:
+      type: array
+      items:
+        type: object
+        properties:
+          label:
+            type: string
+          url:
+            type: string
+    meta_title:
+      type: string
+    meta_description:
+      type: string
+    og_image:
+      type: string
+    og_title:
+      type: string
+    og_description:
+      type: string
+    twitter_image:
+      type: string
+    twitter_title:
+      type: string
+    twitter_description:
+      type: string
+    members_support_address:
+      type: string
+    url:
+      type: string
+
+Meta:
+  type: object
+  description: |-
+    Contains pagination information for browse requests.
+  properties:
+    pagination:
+      type: object
+      description: |-
+        All browse endpoints are paginated, returning 15 records by default. You can use the page and limit
+        parameters to move through the pages of records. The response object contains a meta.pagination key with
+        information on the current location within the records:
+        
+        ```json
+        "meta":{
+          "pagination":{
+            "page":1,
+            "limit":2,
+            "pages":1,
+            "total":1,
+            "next":null,
+            "prev":null
+          }
+        }
+        ```
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 2
+        pages:
+          type: integer
+          example: 1
+        total:
+          type: integer
+          example: 1
+        next:
+          type: string
+          example: null
+        prev:
+          type: string
+          example: null
+
+Error:
+  type: object
+  properties:
+    message:
+      type: string
+      description: Indicate the type of error
+      example: Unknown Content API Key
+    errorType:
+      type: string
+      description: Provide clarity on what exactly has gone wrong
+      example: UnauthorizedError
+
+PostsResponse:
+  type: object
+  properties:
+    posts:
+      type: array
+      items:
+        $ref: "#/Post"
+    meta:
+      $ref: "#/Meta"
+
+AuthorsResponse:
+  type: object
+  properties:
+    authors:
+      type: array
+      items:
+        $ref: "#/Author"
+    meta:
+      $ref: "#/Meta"
+
+TagsResponse:
+  type: object
+  properties:
+    tags:
+      type: array
+      items:
+        $ref: "#/Tag"
+    meta:
+      $ref: "#/Meta"
+
+SettingsResponse:
+  type: object
+  properties:
+    settings:
+      $ref: "#/Settings"
+    meta:
+      $ref: "#/Meta"
+
+ErrorResponse:
+  type: object
+  properties:
+    errors:
+      type: array
+      items:
+        $ref: "#/Error"
