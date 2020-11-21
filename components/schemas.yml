@@ -221,6 +221,8 @@ Meta:
   type: object
   description: |-
     Contains pagination information for browse requests.
+  required:
+    - pagination
   properties:
     pagination:
       type: object
@@ -241,6 +243,11 @@ Meta:
           }
         }
         ```
+      required:
+        - page
+        - limit
+        - pages
+        - total
       properties:
         page:
           type: integer
@@ -265,6 +272,9 @@ Meta:
 
 Error:
   type: object
+  required:
+    - message
+    - errorType
   properties:
     message:
       type: string
@@ -277,6 +287,8 @@ Error:
 
 PostsResponse:
   type: object
+  required:
+    - posts
   properties:
     posts:
       type: array
@@ -287,6 +299,8 @@ PostsResponse:
 
 AuthorsResponse:
   type: object
+  required:
+    - authors
   properties:
     authors:
       type: array
@@ -297,6 +311,8 @@ AuthorsResponse:
 
 TagsResponse:
   type: object
+  required:
+    - tags
   properties:
     tags:
       type: array
@@ -307,6 +323,8 @@ TagsResponse:
 
 SettingsResponse:
   type: object
+  required:
+    - settings
   properties:
     settings:
       $ref: "#/Settings"
@@ -315,6 +333,8 @@ SettingsResponse:
 
 ErrorResponse:
   type: object
+  required:
+    - errors
   properties:
     errors:
       type: array
