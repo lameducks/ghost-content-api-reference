@@ -255,10 +255,12 @@ Meta:
           type: integer
           example: 1
         next:
-          type: string
+          type: integer
+          nullable: true
           example: null
         prev:
-          type: string
+          type: integer
+          nullable: true
           example: null
 
 Error:
