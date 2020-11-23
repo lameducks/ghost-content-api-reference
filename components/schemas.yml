@@ -13,6 +13,8 @@ Post:
       type: string
     comment_id:
       type: string
+    plaintext:
+      type: string
     feature_image:
       type: string
     featured:
