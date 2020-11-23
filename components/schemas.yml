@@ -110,6 +110,8 @@ Author:
       type: string
     url:
       type: string
+    count:
+      $ref: "#/Count"
 
 Tag:
   type: object
@@ -152,6 +154,8 @@ Tag:
       type: string
     url:
       type: string
+    count:
+      $ref: "#/Count"
 
 Settings:
   type: object
@@ -218,6 +222,18 @@ Settings:
       type: string
     url:
       type: string
+
+Count:
+  type: object
+  description: |-
+    (Only if `include=count.posts` is specified in authors and tags)
+    
+    The number of posts associated with an author or tag.
+  required:
+    - posts
+  properties:
+    posts:
+      type: integer
 
 Meta:
   type: object
