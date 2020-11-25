@@ -97,7 +97,11 @@ limit:
     * `&limit=all` will return all records - use carefully!
   required: false
   schema:
-    type: integer
+    oneOf:
+      - type: integer
+      - type: string
+        enum:
+          - all
     default: 15
 
 order:
